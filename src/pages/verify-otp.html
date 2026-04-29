@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify OTP | KIUTSO Elections 2025/26</title>
+    <link rel="icon" href="../../assets/images/kiut-white.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+        --green-dark: #0d4a22;
+        --green: #166534;
+        --green-mid: #1a7a3c;
+        --green-light: #dcfce7;
+        --white: #ffffff;
+        --off-white: #f9fafb;
+        --gray-200: #e2e8f0;
+        --gray-400: #94a3b8;
+        --gray-500: #64748b;
+        --gray-700: #334155;
+        --text: #1e293b;
+        --err: #dc2626;
+        --sans: "Poppins", sans-serif;
+      }
+      html, body {
+        min-height: 100vh;
+        font-family: var(--sans);
+        background: var(--off-white);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+      }
+      .nav {
+        background: var(--green-dark);
+        padding: 0 40px;
+        height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+      }
+      .nav-logo-img {
+        height: 64px;
+        width: 64px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+      .nav-brand-text span { display: block; line-height: 1.15; }
+      .nav-brand-text .top { font-size: 14px; font-weight: 700; color: #fff; }
+      .nav-brand-text .bot { font-size: 10px; color: rgba(255,255,255,0.55); }
+      .page {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+        border: 1px solid var(--gray-200);
+        width: 100%;
+        max-width: 440px;
+        padding: 40px;
+      }
+      .card-header { margin-bottom: 32px; text-align: center; }
+      .card-header .icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--green-light);
+        border: 2px solid var(--green);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+      }
+      .card-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+      .card-header p { font-size: 13.5px; color: var(--gray-500); line-height: 1.6; }
+      .card-header .email-highlight {
+        font-weight: 600;
+        color: var(--green);
+      }
+      .otp-inputs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 28px 0;
+      }
+      .otp-inputs input {
+        width: 52px;
+        height: 58px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        font-family: var(--sans);
+        border: 2px solid var(--gray-200);
+        border-radius: 12px;
+        outline: none;
+        background: var(--off-white);
+        color: var(--text);
+        transition: all 0.2s;
+      }
+      .otp-inputs input:focus {
+        border-color: var(--green);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(22,101,52,0.1);
+      }
+      .otp-inputs input.err { border-color: var(--err); }
+      .btn-primary {
+        width: 100%;
+        padding: 13px;
+        background: var(--green);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-primary:hover { background: var(--green-dark); }
+      .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; }
+      .resend-row {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--gray-500);
+      }
+      .resend-btn {
+        background: none;
+        border: none;
+        color: var(--green);
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .resend-btn:disabled { color: var(--gray-400); cursor: not-allowed; text-decoration: none; }
+      .error-msg {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: var(--err);
+        margin-bottom: 16px;
+        text-align: center;
+      }
+      .error-msg.show { display: block; }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <a href="../../main/index.html" class="nav-brand">
+        <img src="../../assets/images/kiut-white.png" alt="KIUT" class="nav-logo-img" onerror="this.style.display='none'"/>
+        <div class="nav-brand-text">
+          <span class="top">Kampala International University of Tanzania</span>
+          <span class="bot">KIUTSO Elections 2025/26</span>
+        </div>
+      </a>
+    </nav>
+    <div class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon">
+            <svg width="28" height="28" fill="none" stroke="#166534" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <h2>Verify Your Email</h2>
+          <p>Tumekutumia OTP code kwenye email yako<br>
+            <span class="email-highlight" id="emailDisplay"></span>
+          </p>
+        </div>
+
+        <div class="error-msg" id="errorMsg">OTP si sahihi. Jaribu tena!</div>
+
+        <div class="otp-inputs">
+          <input type="text" maxlength="1" class="otp-input" id="otp1" />
+          <input type="text" maxlength="1" class="otp-input" id="otp2" />
+          <input type="text" maxlength="1" class="otp-input" id="otp3" />
+          <input type="text" maxlength="1" class="otp-input" id="otp4" />
+          <input type="text" maxlength="1" class="otp-input" id="otp5" />
+          <input type="text" maxlength="1" class="otp-input" id="otp6" />
+        </div>
+
+        <button class="btn-primary" id="verifyBtn" onclick="verifyOtp()">
+          Verify OTP
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+        <div class="resend-row">
+          Hukupokea OTP?
+          <button class="resend-btn" id="resendBtn" onclick="resendOtp()">Tuma tena</button>
+          <span id="countdown"></span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = 'https://kiutso-backend-production.up.railway.app/api';
+      const userId = localStorage.getItem('user_id');
+      const email = localStorage.getItem('user_email');
+
+      // Onyesha email
+      if (email) {
+        document.getElementById('emailDisplay').textContent = email;
+      }
+
+      // Kama hakuna user_id — rudi register
+      if (!userId) {
+        window.location.href = 'register.html';
+      }
+
+      // OTP inputs — auto focus
+      const inputs = document.querySelectorAll('.otp-input');
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          if (e.target.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          }
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
+      });
+
+      // Verify OTP
+      async function verifyOtp() {
+        const code = Array.from(inputs).map(i => i.value).join('');
+
+        if (code.length !== 6) {
+          showError('Weka OTP yote ya nambari 6!');
+          return;
+        }
+
+        const btn = document.getElementById('verifyBtn');
+        btn.disabled = true;
+        btn.textContent = 'Inathibitisha...';
+
+        try {
+          const response = await fetch(`${API_URL}/auth/verify-otp`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              code: code,
+              type: 'register',
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('user_email');
+            window.location.href = 'votingPage.html';
+          } else {
+            showError(data.message || 'OTP si sahihi!');
+          }
+        } catch (error) {
+          showError('Kuna tatizo la mtandao!');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Verify OTP';
+        }
+      }
+
+      // Resend OTP
+      async function resendOtp() {
+        const btn = document.getElementById('resendBtn');
+        btn.disabled = true;
+        startCountdown(60);
+
+        try {
+          await fetch(`${API_URL}/auth/resend-otp`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId }),
+          });
+        } catch(e) {}
+      }
+
+      // Countdown timer
+      function startCountdown(seconds) {
+        const countdown = document.getElementById('countdown');
+        const btn = document.getElementById('resendBtn');
+        let remaining = seconds;
+
+        const timer = setInterval(() => {
+          countdown.textContent = `(${remaining}s)`;
+          remaining--;
+          if (remaining < 0) {
+            clearInterval(timer);
+            countdown.textContent = '';
+            btn.disabled = false;
+          }
+        }, 1000);
+      }
+
+      function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 5000);
+      }
+
+      // Start countdown on load
+      startCountdown(60);
+    </script>
+  </body>
+</html>
