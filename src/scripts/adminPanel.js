@@ -211,7 +211,7 @@ async function loadCandidates() {
         tbody.innerHTML = candidates.map((c, i) => `
             <tr>
                 <td>${i + 1}</td>
-                <td><div class="tbl-avatar-ph">${c.full_name.charAt(0)}</div></td>
+                <td>${c.photo_url ? `<img src="${c.photo_url}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : `<div class="tbl-avatar-ph">${c.full_name.charAt(0)}</div>`}</td>
                 <td class="tbl-name">${c.full_name}</td>
                 <td>${c.position ? c.position.title : '-'}</td>
                 <td>${c.faculty || '-'}</td>
