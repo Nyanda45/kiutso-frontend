@@ -78,7 +78,7 @@ const user = JSON.parse(localStorage.getItem('user') || '{}');
 
 // Kama hajalogini — rudisha login
 if (!token) {
-    window.location.href = 'login.html';
+    window.location.href = "/src/pages/login.html";
 }
 // Select candidate kutoka API
 function selectCandAPI(position, id, card) {
@@ -109,7 +109,7 @@ function selectCandAPI(position, id, card) {
 }
 // Kama hajalogini — rudisha login
 if (!token) {
-    window.location.href = 'login.html';
+    window.location.href = "/src/pages/login.html";
 }
 
 // Onyesha reg number na faculty kwenye nav
@@ -515,5 +515,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '../../main/index.html';
+    window.location.href = '/index.html';
 }

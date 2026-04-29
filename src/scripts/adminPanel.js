@@ -4,7 +4,7 @@ const user = JSON.parse(localStorage.getItem('user') || '{}');
 
 // Kama hajalogini — rudisha login
 if (!token || user.role !== 'admin') {
-    window.location.href = 'login.html';
+    window.location.href = "/src/pages/login.html";
 }
 
 // Load data ya Overview
@@ -98,7 +98,7 @@ async function adminLogout() {
     } catch(e) {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = 'login.html';
+    window.location.href = "/src/pages/login.html";
 }
 // Load Elections
 async function loadElections() {
