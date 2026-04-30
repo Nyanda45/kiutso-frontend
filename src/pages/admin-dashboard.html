@@ -3799,5 +3799,142 @@
       </div>
     </div>
     <script src="../scripts/adminPanel.js"></script>
+    &lt;!-- ================================================================
+  KIUTSO — HTML SNIPPETS
+  Paste sehemu hizi ndani ya admin-dashboard.html, kabla ya </body>
+  Ongeza tu modals ambazo HAZIPO tayari kwenye file yako
+================================================================ --&gt;
+
+
+&lt;!-- ① CREATE ELECTION MODAL --&gt;
+&lt;div class="modal-overlay" id="createElectionModal"&gt;
+  &lt;div class="modal"&gt;
+    &lt;div class="modal-head"&gt;
+      &lt;h3&gt;Create New Election&lt;/h3&gt;
+      &lt;button class="modal-close" onclick="closeModal('createElectionModal')"&gt;&amp;times;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="modal-body"&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label&gt;Election Title&lt;/label&gt;
+        &lt;input type="text" id="election-title" class="form-ctrl" placeholder="e.g. KIUTSO General Elections 2025/26"&gt;
+      &lt;/div&gt;
+      &lt;div class="form-row"&gt;
+        &lt;div class="form-group"&gt;
+          &lt;label&gt;Voting Opens&lt;/label&gt;
+          &lt;input type="datetime-local" id="election-opens" class="form-ctrl"&gt;
+        &lt;/div&gt;
+        &lt;div class="form-group"&gt;
+          &lt;label&gt;Voting Closes&lt;/label&gt;
+          &lt;input type="datetime-local" id="election-closes" class="form-ctrl"&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="modal-foot"&gt;
+      &lt;button class="btn btn-gh" onclick="closeModal('createElectionModal')"&gt;Cancel&lt;/button&gt;
+      &lt;button class="btn btn-p" id="create-election-btn" onclick="createElection()"&gt;Create Election&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;!-- ② ADD POSITION MODAL --&gt;
+&lt;div class="modal-overlay" id="addPositionModal"&gt;
+  &lt;div class="modal"&gt;
+    &lt;div class="modal-head"&gt;
+      &lt;h3&gt;Add Position&lt;/h3&gt;
+      &lt;button class="modal-close" onclick="closeModal('addPositionModal')"&gt;&amp;times;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="modal-body"&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label&gt;Position Title&lt;/label&gt;
+        &lt;input type="text" id="pos-title" class="form-ctrl" placeholder="e.g. Chairperson"&gt;
+      &lt;/div&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label&gt;Type&lt;/label&gt;
+        &lt;select id="posType" class="form-ctrl" onchange="toggleFacSel()"&gt;
+          &lt;option value="u"&gt;University-wide&lt;/option&gt;
+          &lt;option value="f"&gt;Faculty-specific&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class="form-group" id="facSelGroup" style="display:none"&gt;
+        &lt;label&gt;Faculty&lt;/label&gt;
+        &lt;input type="text" id="pos-faculty" class="form-ctrl" placeholder="e.g. Faculty of Engineering"&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="modal-foot"&gt;
+      &lt;button class="btn btn-gh" onclick="closeModal('addPositionModal')"&gt;Cancel&lt;/button&gt;
+      &lt;button class="btn btn-p" id="pos-submit-btn" onclick="addPosition()"&gt;Add Position&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;!-- ③ EDIT POSITION MODAL --&gt;
+&lt;div class="modal-overlay" id="editPositionModal"&gt;
+  &lt;div class="modal"&gt;
+    &lt;div class="modal-head"&gt;
+      &lt;h3&gt;Edit Position&lt;/h3&gt;
+      &lt;button class="modal-close" onclick="closeModal('editPositionModal')"&gt;&amp;times;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="modal-body"&gt;
+      &lt;input type="hidden" id="edit-pos-id"&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label&gt;Position Title&lt;/label&gt;
+        &lt;input type="text" id="edit-pos-title" class="form-ctrl"&gt;
+      &lt;/div&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label&gt;Type&lt;/label&gt;
+        &lt;select id="editPosType" class="form-ctrl" onchange="toggleEditFacSel()"&gt;
+          &lt;option value="u"&gt;University-wide&lt;/option&gt;
+          &lt;option value="f"&gt;Faculty-specific&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class="form-group" id="editFacSelGroup" style="display:none"&gt;
+        &lt;label&gt;Faculty&lt;/label&gt;
+        &lt;input type="text" id="edit-pos-faculty" class="form-ctrl"&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="modal-foot"&gt;
+      &lt;button class="btn btn-gh" onclick="closeModal('editPositionModal')"&gt;Cancel&lt;/button&gt;
+      &lt;button class="btn btn-p" id="edit-pos-submit-btn" onclick="updatePosition()"&gt;Save Changes&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;!-- ================================================================
+  BUTTONS — weka hizi kwenye sehemu zao sahihi kwenye HTML yako
+================================================================ --&gt;
+
+&lt;!--
+  Kwenye #sec-elections — ed-actions:
+  Buttons zinazohitajika (badilisha {ELECTION_ID} na el.id kutoka JS):
+
+  &lt;button class="btn btn-p btn-sm" onclick="openModal('createElectionModal')"&gt;+ New Election&lt;/button&gt;
+  &lt;button class="btn btn-gh btn-sm" onclick="pauseVoting(ELECTION_ID)"&gt;Pause Voting&lt;/button&gt;
+  &lt;button class="btn btn-d btn-sm" onclick="closeVotingEarly(ELECTION_ID)"&gt;Close Voting&lt;/button&gt;
+
+  Njia bora: katika loadElections(), baada ya kuload election data,
+  ongeza hii kwenye ed-actions div:
+    edActions.innerHTML = `
+      &lt;button class="btn btn-p btn-sm" onclick="openModal('createElectionModal')"&gt;+ New Election&lt;/button&gt;
+      &lt;button class="btn btn-gh btn-sm" onclick="pauseVoting(${el.id})"&gt;Pause Voting&lt;/button&gt;
+      &lt;button class="btn btn-d btn-sm" onclick="closeVotingEarly(${el.id})"&gt;Close Voting&lt;/button&gt;
+    `;
+
+  Kwenye #sec-positions — pg-head:
+  &lt;button class="btn btn-p btn-sm" onclick="openModal('addPositionModal')"&gt;+ Add Position&lt;/button&gt;
+
+  Kwenye #sec-announcements — send button:
+  &lt;button class="btn btn-p" id="ann-send-btn" onclick="sendAnnouncement()"&gt;Send Announcement&lt;/button&gt;
+
+  Kwenye #sec-notifications — mark all read button:
+  &lt;button class="btn btn-gh btn-sm" onclick="markAllAsRead()"&gt;Mark All Read&lt;/button&gt;
+
+  Kwenye #sec-reports — report cards:
+  &lt;button class="btn btn-p btn-sm" onclick="downloadReport('voters','pdf')"&gt;PDF&lt;/button&gt;
+  &lt;button class="btn btn-gh btn-sm" onclick="downloadReport('voters','excel')"&gt;Excel&lt;/button&gt;
+  (badilisha 'voters' na: 'results', 'turnout', 'candidates' kwa report nyingine)
+--&gt;
   </body>
 </html>
