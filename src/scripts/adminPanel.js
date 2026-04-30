@@ -1468,3 +1468,670 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+// ============================================================
+// KIUTSO ADMIN PANEL — PATCH FILE
+// Ongeza mwishoni mwa adminPanel.js yako (kabla ya closing brace)
+// Hii inaongeza tu functions zinazokosekana — haishabihishi zilizopo
+// ============================================================
+
+// ─── TOAST (badala ya alert()) ───────────────────────────────
+function showToast(msg, type = 'success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = `
+            position:fixed; bottom:24px; right:24px; z-index:9999;
+            display:flex; flex-direction:column; gap:8px;
+        `;
+        document.body.appendChild(container);
+    }
+    const colors = {
+        success: '#0a3018',
+        error: '#dc2626',
+        warning: '#f59e0b',
+        info: '#1d4ed8'
+    };
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background:${colors[type] || colors.success}; color:#fff;
+        padding:12px 18px; border-radius:10px; font-size:13.5px;
+        font-family:'Poppins',sans-serif; font-weight:500;
+        box-shadow:0 4px 20px rgba(0,0,0,0.18);
+        animation:toastin 0.25s ease;
+        max-width:300px; line-height:1.5;
+    `;
+    toast.textContent = msg;
+
+    // Ongeza style ya animation kwenye head (mara moja tu)
+    if (!document.getElementById('toast-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-style';
+        style.textContent = `
+            @keyframes toastin { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:none; } }
+            @keyframes toastout { from { opacity:1; } to { opacity:0; transform:translateY(10px); } }
+        `;
+        document.head.appendChild(style);
+    }
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastout 0.25s ease forwards';
+        setTimeout(() => toast.remove(), 250);
+    }, 3500);
+}
+
+// ─── MANAGE ELECTIONS ────────────────────────────────────────
+
+// Unda Election mpya
+async function createElection() {
+    const title = document.getElementById('election-title')?.value.trim();
+    const voting_opens = document.getElementById('election-opens')?.value;
+    const voting_closes = document.getElementById('election-closes')?.value;
+
+    if (!title || !voting_opens || !voting_closes) {
+        showToast('Jaza sehemu zote!', 'warning');
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('create-election-btn');
+        if (btn) { btn.textContent = 'Inaunda...'; btn.disabled = true; }
+
+        const res = await fetch(`${API_URL}/admin/elections`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ title, voting_opens, voting_closes })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast('Election imeundwa!', 'success');
+            closeModal('createElectionModal');
+            loadElections();
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    } finally {
+        const btn = document.getElementById('create-election-btn');
+        if (btn) { btn.textContent = 'Create Election'; btn.disabled = false; }
+    }
+}
+
+// Simamisha (Pause) upigaji kura
+async function pauseVoting(electionId) {
+    if (!confirm('Simamisha upigaji kura kwa muda?')) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/elections/${electionId}/pause`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Upigaji kura umesimamishwa!', 'warning');
+            loadElections();
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+// Funga (Close) upigaji kura mapema
+async function closeVotingEarly(electionId) {
+    if (!confirm('Funga upigaji kura sasa hivi? Hatua hii haiwezi kubatilishwa.')) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/elections/${electionId}/close`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Upigaji kura umefungwa!', 'success');
+            loadElections();
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+// ─── MANAGE POSITIONS ────────────────────────────────────────
+let allPositions = [];
+
+async function loadPositions() {
+    try {
+        const res = await fetch(`${API_URL}/admin/positions`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        allPositions = await res.json();
+        renderPositions(allPositions);
+    } catch (e) {
+        console.error('Positions error:', e);
+        showToast('Tatizo kupakia positions!', 'error');
+    }
+}
+
+function renderPositions(positions) {
+    const tbody = document.querySelector('#sec-positions .tbl tbody');
+    if (!tbody) return;
+
+    if (!positions || positions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">Hakuna positions zilizopatikana</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = positions.map((p, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td class="tbl-name">${p.title}</td>
+            <td>${p.type === 'f' ? 'Faculty' : 'University-wide'}</td>
+            <td>${p.faculty || '-'}</td>
+            <td>${p.candidates_count ?? '-'}</td>
+            <td class="tbl-actions">
+                <button class="btn btn-gh btn-sm" onclick="editPosition(${p.id}, '${p.title}', '${p.type || 'u'}', '${p.faculty || ''}')">Edit</button>
+                <button class="btn btn-d btn-sm" onclick="deletePosition(${p.id})">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+
+    const visibleEl = document.querySelector('#sec-positions .visible-entries');
+    const totalEl = document.querySelector('#sec-positions .total-entries');
+    if (visibleEl) visibleEl.textContent = positions.length;
+    if (totalEl) totalEl.textContent = positions.length;
+}
+
+async function addPosition() {
+    const title = document.getElementById('pos-title')?.value.trim();
+    const type = document.getElementById('posType')?.value || 'u';
+    const faculty = document.getElementById('pos-faculty')?.value.trim();
+
+    if (!title) {
+        showToast('Jaza jina la position!', 'warning');
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('pos-submit-btn');
+        if (btn) { btn.textContent = 'Inaongeza...'; btn.disabled = true; }
+
+        const res = await fetch(`${API_URL}/admin/positions`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                title,
+                type,
+                faculty: type === 'f' ? faculty : null,
+                election_id: 1
+            })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast('Position imeongezwa!', 'success');
+            closeModal('addPositionModal');
+            document.getElementById('pos-title').value = '';
+            loadPositions();
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    } finally {
+        const btn = document.getElementById('pos-submit-btn');
+        if (btn) { btn.textContent = 'Add Position'; btn.disabled = false; }
+    }
+}
+
+function editPosition(id, title, type, faculty) {
+    document.getElementById('edit-pos-id').value = id;
+    document.getElementById('edit-pos-title').value = title;
+    if (document.getElementById('editPosType')) {
+        document.getElementById('editPosType').value = type;
+        toggleEditFacSel();
+    }
+    if (document.getElementById('edit-pos-faculty')) {
+        document.getElementById('edit-pos-faculty').value = faculty;
+    }
+    openModal('editPositionModal');
+}
+
+function toggleEditFacSel() {
+    const facGroup = document.getElementById('editFacSelGroup');
+    if (facGroup) {
+        facGroup.style.display = document.getElementById('editPosType')?.value === 'f' ? '' : 'none';
+    }
+}
+
+async function updatePosition() {
+    const id = document.getElementById('edit-pos-id')?.value;
+    const title = document.getElementById('edit-pos-title')?.value.trim();
+    const type = document.getElementById('editPosType')?.value || 'u';
+    const faculty = document.getElementById('edit-pos-faculty')?.value.trim();
+
+    if (!title) {
+        showToast('Jaza jina la position!', 'warning');
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('edit-pos-submit-btn');
+        if (btn) { btn.textContent = 'Inasasisha...'; btn.disabled = true; }
+
+        const res = await fetch(`${API_URL}/admin/positions/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ title, type, faculty: type === 'f' ? faculty : null })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast('Position imesasishwa!', 'success');
+            closeModal('editPositionModal');
+            loadPositions();
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    } finally {
+        const btn = document.getElementById('edit-pos-submit-btn');
+        if (btn) { btn.textContent = 'Save Changes'; btn.disabled = false; }
+    }
+}
+
+async function deletePosition(id) {
+    if (!confirm('Futa position hii? Wagombea waliopo ndani watafutwa pia.')) return;
+    try {
+        const res = await fetch(`${API_URL}/admin/positions/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        if (res.ok) {
+            showToast('Position imefutwa!', 'success');
+            loadPositions();
+        } else {
+            const data = await res.json();
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+// ─── PAST ELECTIONS ──────────────────────────────────────────
+async function loadPastElections() {
+    const grid = document.querySelector('#sec-past .past-grid');
+    if (!grid) return;
+
+    grid.innerHTML = `<p style="color:var(--muted);font-size:13px">Inapakia...</p>`;
+
+    try {
+        const res = await fetch(`${API_URL}/admin/elections/past`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        const elections = await res.json();
+
+        if (!elections || elections.length === 0) {
+            grid.innerHTML = `<p style="color:var(--muted);font-size:13px">Hakuna uchaguzi uliopita.</p>`;
+            return;
+        }
+
+        grid.innerHTML = elections.map(el => `
+            <div class="past-card">
+                <div class="past-top">
+                    <h3>${el.title}</h3>
+                    <p>${el.academic_year || 'Academic Year'}</p>
+                </div>
+                <div class="past-body">
+                    <div class="past-row">
+                        <span>Ilianza</span>
+                        <span>${el.voting_opens ? new Date(el.voting_opens).toLocaleDateString() : '-'}</span>
+                    </div>
+                    <div class="past-row">
+                        <span>Ilimalizika</span>
+                        <span>${el.voting_closes ? new Date(el.voting_closes).toLocaleDateString() : '-'}</span>
+                    </div>
+                    <div class="past-row">
+                        <span>Jumla ya Kura</span>
+                        <span>${el.total_votes ?? '-'}</span>
+                    </div>
+                    <div class="past-row">
+                        <span>Ushiriki</span>
+                        <span>${el.voter_turnout ? el.voter_turnout + '%' : '-'}</span>
+                    </div>
+                </div>
+                <div class="past-foot">
+                    <button class="btn btn-gh btn-sm" onclick="viewPastResults(${el.id})">View Results</button>
+                    <button class="btn btn-gh btn-sm" onclick="exportPastElection(${el.id})">Export</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        grid.innerHTML = `<p style="color:var(--red);font-size:13px">Tatizo kupakia uchaguzi uliopita.</p>`;
+        console.error('Past elections error:', e);
+    }
+}
+
+async function viewPastResults(electionId) {
+    showToast('Inapakia matokeo...', 'info');
+    try {
+        const res = await fetch(`${API_URL}/admin/elections/${electionId}/results`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Matokeo yamepakiwa — angalia Results section', 'success');
+            // Switch to results section
+            const resultsBtn = document.querySelector('[data-section="results"]');
+            if (resultsBtn) nav(resultsBtn);
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+async function exportPastElection(electionId) {
+    showToast('Inaandaa export...', 'info');
+    try {
+        const res = await fetch(`${API_URL}/admin/elections/${electionId}/export`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `election_${electionId}_results.xlsx`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Export imefanikiwa!', 'success');
+        } else {
+            showToast('Tatizo la export!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+// ─── ANNOUNCEMENTS ───────────────────────────────────────────
+async function loadAnnouncementHistory() {
+    try {
+        const res = await fetch(`${API_URL}/admin/announcements`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        const announcements = await res.json();
+
+        const list = document.querySelector('.ann-list');
+        if (!list) return;
+
+        if (!announcements || announcements.length === 0) {
+            list.innerHTML = `<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">Hakuna matangazo yaliyotumwa bado.</p>`;
+            return;
+        }
+
+        list.innerHTML = announcements.map(ann => `
+            <div class="ann-item">
+                <div class="ann-head">
+                    <span class="ann-subj">${ann.subject || ann.title}</span>
+                    <span class="ann-ts">${new Date(ann.created_at).toLocaleString()}</span>
+                </div>
+                <div class="ann-meta">
+                    Kwa: <strong>${ann.audience || 'Wote'}</strong> · 
+                    ${ann.sent_count ? `Watu ${ann.sent_count} walipokea` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error('Announcements error:', e);
+    }
+}
+
+async function sendAnnouncement() {
+    const subject = document.getElementById('ann-subject')?.value.trim();
+    const message = document.getElementById('ann-message')?.value.trim();
+    const audience = document.querySelector('.aud-pill.on')?.dataset.aud || 'all';
+
+    if (!subject || !message) {
+        showToast('Jaza kichwa na ujumbe!', 'warning');
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('ann-send-btn');
+        if (btn) { btn.textContent = 'Inatuma...'; btn.disabled = true; }
+
+        const res = await fetch(`${API_URL}/admin/announcements`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ subject, message, audience })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast('Tangazo limetumwa!', 'success');
+            document.getElementById('ann-subject').value = '';
+            document.getElementById('ann-message').value = '';
+            loadAnnouncementHistory();
+        } else {
+            showToast(data.message || 'Kuna tatizo!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    } finally {
+        const btn = document.getElementById('ann-send-btn');
+        if (btn) { btn.textContent = 'Send Announcement'; btn.disabled = false; }
+    }
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────
+let allNotifications = [];
+
+async function loadNotifications() {
+    try {
+        const res = await fetch(`${API_URL}/admin/notifications`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        const data = await res.json();
+        allNotifications = data.notifications || data || [];
+        renderNotifications(allNotifications);
+
+        // Sasisha count kwenye topbar
+        const unreadCount = allNotifications.filter(n => !n.read_at).length;
+        const countEl = document.querySelector('.notif-count');
+        if (countEl) countEl.textContent = unreadCount > 0 ? unreadCount : '';
+    } catch (e) {
+        console.error('Notifications error:', e);
+    }
+}
+
+function renderNotifications(notifications) {
+    const list = document.querySelector('#sec-notifications .notif-list');
+    if (!list) return;
+
+    if (!notifications || notifications.length === 0) {
+        list.innerHTML = `<p style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">Hakuna arifa kwa sasa.</p>`;
+        return;
+    }
+
+    const dotColor = (type) => {
+        if (type === 'success' || type === 'vote') return 'g';
+        if (type === 'warning') return 'w';
+        if (type === 'error') return 'r';
+        return 'g';
+    };
+
+    list.innerHTML = notifications.map(n => `
+        <div class="notif-item ${!n.read_at ? 'unread' : ''}" onclick="markNotifRead(${n.id}, this)">
+            <div class="notif-dot ${dotColor(n.type)}"></div>
+            <div class="notif-content">
+                <div class="notif-title">${n.title || n.data?.title || 'Arifa'}</div>
+                <div class="notif-desc">${n.message || n.data?.message || ''}</div>
+                <div class="notif-ts">${new Date(n.created_at).toLocaleString()}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function markNotifRead(id, el) {
+    if (el && el.classList.contains('unread')) {
+        el.classList.remove('unread');
+        try {
+            await fetch(`${API_URL}/admin/notifications/${id}/read`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                }
+            });
+        } catch (e) {}
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        const res = await fetch(`${API_URL}/admin/notifications/read-all`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+        if (res.ok) {
+            document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+            showToast('Arifa zote zimesomwa!', 'success');
+            const countEl = document.querySelector('.notif-count');
+            if (countEl) countEl.textContent = '';
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+// Filter notifications (All / Unread / System)
+function filterNotifications(type) {
+    let filtered = allNotifications;
+    if (type === 'unread') {
+        filtered = allNotifications.filter(n => !n.read_at);
+    } else if (type === 'system') {
+        filtered = allNotifications.filter(n => n.type === 'system');
+    }
+    renderNotifications(filtered);
+}
+
+// ─── REPORTS ─────────────────────────────────────────────────
+async function downloadReport(type, format = 'pdf') {
+    showToast(`Inaandaa ${type} report...`, 'info');
+    try {
+        const res = await fetch(`${API_URL}/admin/reports/${type}?format=${format}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            }
+        });
+
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const ext = format === 'excel' ? 'xlsx' : 'pdf';
+            a.download = `kiutso_${type}_report.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Report imepakiwa!', 'success');
+        } else {
+            const data = await res.json();
+            showToast(data.message || 'Tatizo kupakua report!', 'error');
+        }
+    } catch (e) {
+        showToast('Tatizo la mtandao!', 'error');
+    }
+}
+
+// ─── SASISHA nav() ILI IPIGE SIMU FUNCTIONS MPYA ─────────────
+// Override ya nav() iliyopo — inaongeza sections zilizokuwa hazifanyi kazi
+const _originalNav = window.nav;
+window.nav = function(btn) {
+    if (!btn) return;
+    const id = btn.dataset.section;
+
+    // Piga simu nav ya awali
+    if (typeof _originalNav === 'function') _originalNav(btn);
+
+    // Piga simu functions mpya kulingana na section
+    if (id === 'positions') loadPositions();
+    if (id === 'past') loadPastElections();
+    if (id === 'announcements') loadAnnouncementHistory();
+    if (id === 'notifications') loadNotifications();
+};
+
+// ─── NOTIFICATION FILTER BUTTONS ─────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    // Weka data-aud kwenye aud-pills (announcements)
+    const audPills = document.querySelectorAll('.aud-pill');
+    const audValues = ['all', 'voters', 'candidates'];
+    audPills.forEach((pill, i) => {
+        if (!pill.dataset.aud) pill.dataset.aud = audValues[i] || 'all';
+    });
+
+    // Notification filter buttons
+    const nfBtns = document.querySelectorAll('.nf-btn');
+    const nfTypes = ['all', 'unread', 'system'];
+    nfBtns.forEach((btn, i) => {
+        btn.addEventListener('click', function () {
+            nfBtns.forEach(b => b.classList.remove('on'));
+            this.classList.add('on');
+            filterNotifications(nfTypes[i] || 'all');
+        });
+    });
+});
