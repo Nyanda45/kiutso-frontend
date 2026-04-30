@@ -3799,142 +3799,97 @@
       </div>
     </div>
     <script src="../scripts/adminPanel.js"></script>
-    &lt;!-- ================================================================
-  KIUTSO — HTML SNIPPETS
-  Paste sehemu hizi ndani ya admin-dashboard.html, kabla ya </body>
-  Ongeza tu modals ambazo HAZIPO tayari kwenye file yako
-================================================================ --&gt;
+   <!-- CREATE ELECTION MODAL -->
+<div class="modal-overlay" id="createElectionModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Create New Election</h3>
+      <button class="modal-close" onclick="closeModal('createElectionModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Election Title</label>
+        <input type="text" id="election-title" class="form-ctrl" placeholder="e.g. KIUTSO General Elections 2025/26">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Voting Opens</label>
+          <input type="datetime-local" id="election-opens" class="form-ctrl">
+        </div>
+        <div class="form-group">
+          <label>Voting Closes</label>
+          <input type="datetime-local" id="election-closes" class="form-ctrl">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-gh" onclick="closeModal('createElectionModal')">Cancel</button>
+      <button class="btn btn-p" id="create-election-btn" onclick="createElection()">Create Election</button>
+    </div>
+  </div>
+</div>
 
+<!-- ADD POSITION MODAL -->
+<div class="modal-overlay" id="addPositionModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add Position</h3>
+      <button class="modal-close" onclick="closeModal('addPositionModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Position Title</label>
+        <input type="text" id="pos-title" class="form-ctrl" placeholder="e.g. Chairperson">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="posType" class="form-ctrl" onchange="toggleFacSel()">
+          <option value="u">University-wide</option>
+          <option value="f">Faculty-specific</option>
+        </select>
+      </div>
+      <div class="form-group" id="facSelGroup" style="display:none">
+        <label>Faculty</label>
+        <input type="text" id="pos-faculty" class="form-ctrl" placeholder="e.g. Faculty of Engineering">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-gh" onclick="closeModal('addPositionModal')">Cancel</button>
+      <button class="btn btn-p" id="pos-submit-btn" onclick="addPosition()">Add Position</button>
+    </div>
+  </div>
+</div>
 
-&lt;!-- ① CREATE ELECTION MODAL --&gt;
-&lt;div class="modal-overlay" id="createElectionModal"&gt;
-  &lt;div class="modal"&gt;
-    &lt;div class="modal-head"&gt;
-      &lt;h3&gt;Create New Election&lt;/h3&gt;
-      &lt;button class="modal-close" onclick="closeModal('createElectionModal')"&gt;&amp;times;&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;div class="modal-body"&gt;
-      &lt;div class="form-group"&gt;
-        &lt;label&gt;Election Title&lt;/label&gt;
-        &lt;input type="text" id="election-title" class="form-ctrl" placeholder="e.g. KIUTSO General Elections 2025/26"&gt;
-      &lt;/div&gt;
-      &lt;div class="form-row"&gt;
-        &lt;div class="form-group"&gt;
-          &lt;label&gt;Voting Opens&lt;/label&gt;
-          &lt;input type="datetime-local" id="election-opens" class="form-ctrl"&gt;
-        &lt;/div&gt;
-        &lt;div class="form-group"&gt;
-          &lt;label&gt;Voting Closes&lt;/label&gt;
-          &lt;input type="datetime-local" id="election-closes" class="form-ctrl"&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class="modal-foot"&gt;
-      &lt;button class="btn btn-gh" onclick="closeModal('createElectionModal')"&gt;Cancel&lt;/button&gt;
-      &lt;button class="btn btn-p" id="create-election-btn" onclick="createElection()"&gt;Create Election&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;!-- ② ADD POSITION MODAL --&gt;
-&lt;div class="modal-overlay" id="addPositionModal"&gt;
-  &lt;div class="modal"&gt;
-    &lt;div class="modal-head"&gt;
-      &lt;h3&gt;Add Position&lt;/h3&gt;
-      &lt;button class="modal-close" onclick="closeModal('addPositionModal')"&gt;&amp;times;&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;div class="modal-body"&gt;
-      &lt;div class="form-group"&gt;
-        &lt;label&gt;Position Title&lt;/label&gt;
-        &lt;input type="text" id="pos-title" class="form-ctrl" placeholder="e.g. Chairperson"&gt;
-      &lt;/div&gt;
-      &lt;div class="form-group"&gt;
-        &lt;label&gt;Type&lt;/label&gt;
-        &lt;select id="posType" class="form-ctrl" onchange="toggleFacSel()"&gt;
-          &lt;option value="u"&gt;University-wide&lt;/option&gt;
-          &lt;option value="f"&gt;Faculty-specific&lt;/option&gt;
-        &lt;/select&gt;
-      &lt;/div&gt;
-      &lt;div class="form-group" id="facSelGroup" style="display:none"&gt;
-        &lt;label&gt;Faculty&lt;/label&gt;
-        &lt;input type="text" id="pos-faculty" class="form-ctrl" placeholder="e.g. Faculty of Engineering"&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class="modal-foot"&gt;
-      &lt;button class="btn btn-gh" onclick="closeModal('addPositionModal')"&gt;Cancel&lt;/button&gt;
-      &lt;button class="btn btn-p" id="pos-submit-btn" onclick="addPosition()"&gt;Add Position&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;!-- ③ EDIT POSITION MODAL --&gt;
-&lt;div class="modal-overlay" id="editPositionModal"&gt;
-  &lt;div class="modal"&gt;
-    &lt;div class="modal-head"&gt;
-      &lt;h3&gt;Edit Position&lt;/h3&gt;
-      &lt;button class="modal-close" onclick="closeModal('editPositionModal')"&gt;&amp;times;&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;div class="modal-body"&gt;
-      &lt;input type="hidden" id="edit-pos-id"&gt;
-      &lt;div class="form-group"&gt;
-        &lt;label&gt;Position Title&lt;/label&gt;
-        &lt;input type="text" id="edit-pos-title" class="form-ctrl"&gt;
-      &lt;/div&gt;
-      &lt;div class="form-group"&gt;
-        &lt;label&gt;Type&lt;/label&gt;
-        &lt;select id="editPosType" class="form-ctrl" onchange="toggleEditFacSel()"&gt;
-          &lt;option value="u"&gt;University-wide&lt;/option&gt;
-          &lt;option value="f"&gt;Faculty-specific&lt;/option&gt;
-        &lt;/select&gt;
-      &lt;/div&gt;
-      &lt;div class="form-group" id="editFacSelGroup" style="display:none"&gt;
-        &lt;label&gt;Faculty&lt;/label&gt;
-        &lt;input type="text" id="edit-pos-faculty" class="form-ctrl"&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div class="modal-foot"&gt;
-      &lt;button class="btn btn-gh" onclick="closeModal('editPositionModal')"&gt;Cancel&lt;/button&gt;
-      &lt;button class="btn btn-p" id="edit-pos-submit-btn" onclick="updatePosition()"&gt;Save Changes&lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-
-
-&lt;!-- ================================================================
-  BUTTONS — weka hizi kwenye sehemu zao sahihi kwenye HTML yako
-================================================================ --&gt;
-
-&lt;!--
-  Kwenye #sec-elections — ed-actions:
-  Buttons zinazohitajika (badilisha {ELECTION_ID} na el.id kutoka JS):
-
-  &lt;button class="btn btn-p btn-sm" onclick="openModal('createElectionModal')"&gt;+ New Election&lt;/button&gt;
-  &lt;button class="btn btn-gh btn-sm" onclick="pauseVoting(ELECTION_ID)"&gt;Pause Voting&lt;/button&gt;
-  &lt;button class="btn btn-d btn-sm" onclick="closeVotingEarly(ELECTION_ID)"&gt;Close Voting&lt;/button&gt;
-
-  Njia bora: katika loadElections(), baada ya kuload election data,
-  ongeza hii kwenye ed-actions div:
-    edActions.innerHTML = `
-      &lt;button class="btn btn-p btn-sm" onclick="openModal('createElectionModal')"&gt;+ New Election&lt;/button&gt;
-      &lt;button class="btn btn-gh btn-sm" onclick="pauseVoting(${el.id})"&gt;Pause Voting&lt;/button&gt;
-      &lt;button class="btn btn-d btn-sm" onclick="closeVotingEarly(${el.id})"&gt;Close Voting&lt;/button&gt;
-    `;
-
-  Kwenye #sec-positions — pg-head:
-  &lt;button class="btn btn-p btn-sm" onclick="openModal('addPositionModal')"&gt;+ Add Position&lt;/button&gt;
-
-  Kwenye #sec-announcements — send button:
-  &lt;button class="btn btn-p" id="ann-send-btn" onclick="sendAnnouncement()"&gt;Send Announcement&lt;/button&gt;
-
-  Kwenye #sec-notifications — mark all read button:
-  &lt;button class="btn btn-gh btn-sm" onclick="markAllAsRead()"&gt;Mark All Read&lt;/button&gt;
-
-  Kwenye #sec-reports — report cards:
-  &lt;button class="btn btn-p btn-sm" onclick="downloadReport('voters','pdf')"&gt;PDF&lt;/button&gt;
-  &lt;button class="btn btn-gh btn-sm" onclick="downloadReport('voters','excel')"&gt;Excel&lt;/button&gt;
-  (badilisha 'voters' na: 'results', 'turnout', 'candidates' kwa report nyingine)
---&gt;
+<!-- EDIT POSITION MODAL -->
+<div class="modal-overlay" id="editPositionModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Edit Position</h3>
+      <button class="modal-close" onclick="closeModal('editPositionModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-pos-id">
+      <div class="form-group">
+        <label>Position Title</label>
+        <input type="text" id="edit-pos-title" class="form-ctrl">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="editPosType" class="form-ctrl" onchange="toggleEditFacSel()">
+          <option value="u">University-wide</option>
+          <option value="f">Faculty-specific</option>
+        </select>
+      </div>
+      <div class="form-group" id="editFacSelGroup" style="display:none">
+        <label>Faculty</label>
+        <input type="text" id="edit-pos-faculty" class="form-ctrl">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-gh" onclick="closeModal('editPositionModal')">Cancel</button>
+      <button class="btn btn-p" id="edit-pos-submit-btn" onclick="updatePosition()">Save Changes</button>
+    </div>
+  </div>
+</div>
   </body>
 </html>
