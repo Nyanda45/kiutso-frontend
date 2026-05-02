@@ -223,6 +223,8 @@ async function closeVotingEarly() {
 // =============================================
 // RESULTS
 // =============================================
+let allResultsData = [];
+
 async function loadResults() {
     try {
         const res = await fetch(`${API_URL}/admin/results`, {
@@ -231,18 +233,43 @@ async function loadResults() {
         const data = await res.json();
         if (!data || !data.positions) return;
 
-        const tbody = document.querySelector('#sec-results .tbl tbody');
-        if (!tbody) return;
+        allResultsData = data.positions;
 
-        let rows = [];
-        let rank = 1;
-        data.positions.forEach(position => {
-            position.candidates.forEach(candidate => {
-                rows.push({ rank: rank++, name: candidate.full_name, position: position.title, votes: candidate.votes_count || 0 });
+        // Jaza filter dropdown
+        const filterSelect = document.querySelector('#sec-results .results-filter');
+        if (filterSelect) {
+            filterSelect.innerHTML = '<option value="all">All Positions</option>' +
+                data.positions.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+            filterSelect.onchange = function() {
+                filterResults(this.value);
+            };
+        }
+
+        filterResults('all');
+
+    } catch(e) { console.error('Results error:', e); }
+}
+
+function filterResults(positionId) {
+    let positions = allResultsData;
+    if (positionId !== 'all') {
+        positions = allResultsData.filter(p => p.id == positionId);
+    }
+
+    let rows = [];
+    positions.forEach(position => {
+        position.candidates.forEach(candidate => {
+            rows.push({
+                name: candidate.full_name,
+                position: position.title,
+                votes: candidate.votes_count || 0
             });
         });
-        rows.sort((a, b) => b.votes - a.votes);
+    });
+    rows.sort((a, b) => b.votes - a.votes);
 
+    const tbody = document.querySelector('#sec-results .tbl tbody');
+    if (tbody) {
         tbody.innerHTML = rows.map((r, i) => `
             <tr>
                 <td><span class="badge ${i === 0 ? 'badge-w' : 'badge-gray'}">${i + 1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}</span></td>
@@ -253,10 +280,10 @@ async function loadResults() {
                 <td>${i === 0 ? '<span class="badge badge-g">Leading</span>' : ''}</td>
             </tr>
         `).join('');
+    }
 
-        if (rc) { rc.destroy(); rc = null; }
-        initResults(rows);
-    } catch(e) { console.error('Results error:', e); }
+    if (rc) { rc.destroy(); rc = null; }
+    initResults(rows);
 }
 
 // =============================================
