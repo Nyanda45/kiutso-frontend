@@ -606,37 +606,30 @@ async function loadAnnouncementHistory() {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
         const announcements = await res.json();
-        const container = document.querySelector('#sec-announcements .ann-history') || document.querySelector('#sec-announcements .tbl tbody');
+        
+        // ← Selector sahihi kutoka HTML yako
+        const container = document.querySelector('#sec-announcements .ann-list');
         if (!container) return;
 
         if (!announcements.length) {
-            container.innerHTML = container.tagName === 'TBODY'
-                ? `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">Hakuna matangazo yaliyotumwa</td></tr>`
-                : `<p style="color:var(--muted);font-size:13px">Hakuna matangazo yaliyotumwa bado.</p>`;
+            container.innerHTML = `<p style="color:var(--muted);font-size:13px;padding:12px">Hakuna matangazo yaliyotumwa bado.</p>`;
             return;
         }
 
-        if (container.tagName === 'TBODY') {
-            container.innerHTML = announcements.map(a => `
-                <tr>
-                    <td class="tbl-name">${a.title}</td>
-                    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.message}</td>
-                    <td><span class="badge badge-gray">${a.audience || 'all'}</span></td>
-                    <td style="font-size:12px">${new Date(a.created_at).toLocaleString()}</td>
-                </tr>
-            `).join('');
-        } else {
-            container.innerHTML = announcements.map(a => `
-                <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-                    <div style="font-weight:600;font-size:13.5px">${a.title}</div>
-                    <div style="font-size:12.5px;color:var(--muted);margin:4px 0">${a.message}</div>
-                    <div style="font-size:11px;color:var(--muted)">${new Date(a.created_at).toLocaleString()} · <span class="badge badge-gray" style="font-size:10px">${a.audience || 'all'}</span></div>
+        container.innerHTML = announcements.map(a => `
+            <div class="ann-item">
+                <div class="ann-head">
+                    <div class="ann-subj">${a.title}</div>
+                    <div class="ann-ts">${new Date(a.created_at).toLocaleString('en-GB', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                    })}</div>
                 </div>
-            `).join('');
-        }
+                <div class="ann-meta">${a.audience === 'all' ? 'All Voters' : a.audience === 'voted' ? 'Voted' : 'Not Voted'} · ${a.recipient_count} recipients</div>
+            </div>
+        `).join('');
+
     } catch(e) { console.error('Announcements history error:', e); }
 }
-
 // =============================================
 // NOTIFICATIONS
 // =============================================

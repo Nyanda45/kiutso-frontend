@@ -2319,8 +2319,8 @@
                   <span class="ed-label">Votes Cast</span><span class="ed-value">120 / 300 (40%)</span>
                 </div>
                 <div class="ed-actions">
-                  <button class="btn btn-w btn-sm" onclick="openModal('pauseModal')">Pause Voting</button>
-                  <button class="btn btn-d btn-sm" onclick="openModal('closeVotingModal')">Close Voting Early</button>
+                  <button class="btn btn-w btn-sm" onclick="pauseVoting()">Pause Voting</button>
+                  <button class="btn btn-d btn-sm" onclick="closeVotingEarly()">Close Voting Early</button>
                   <button class="btn btn-gh btn-sm" onclick="openModal('createElectionModal')">Edit Election</button>
                 </div>
               </div>
@@ -2675,11 +2675,11 @@
                 <div class="card-body">
                   <div class="form-group">
                     <label>Subject</label>
-                    <input type="text" class="form-ctrl" placeholder="e.g. Voting Reminder"/>
+                    <input type="text" class="form-ctrl" id="ann-title" class="form-ctrl" placeholder="e.g. Voting Reminder"/>
                   </div>
                   <div class="form-group">
                     <label>Message</label>
-                    <textarea class="form-ctrl" placeholder="Write your message..."></textarea>
+                    <textarea id="ann-message" class="form-ctrl" placeholder="Write your message..."></textarea>
                   </div>
                   <div class="form-group">
                     <label>Send To</label>
@@ -2690,7 +2690,7 @@
                     </div>
                     <p class="form-hint">Selected: All Voters - 300 recipients</p>
                   </div>
-                  <button class="btn btn-p" style="width: 100%">Send Announcement</button>
+                <button class="btn btn-p" id="ann-send-btn" onclick="sendAnnouncement()" style="width: 100%">Send Announcement</button>
                 </div>
               </div>
               <div class="card">
@@ -2742,8 +2742,8 @@
                 <h3>Voter Turnout Report</h3>
                 <p>Participation by faculty and department - registered count, voted count, and turnout percentage.</p>
                 <div class="report-actions">
-                  <button class="btn btn-gh btn-sm">PDF</button>
-                  <button class="btn btn-gh btn-sm">Excel</button>
+                  <button class="btn btn-gh btn-sm" onclick="downloadReport('voter-turnout','pdf')">PDF</button>
+                  <button class="btn btn-gh btn-sm" onclick="downloadReport('voter-turnout','excel')">Excel</button>
                 </div>
               </div>
               <div class="report-card">
@@ -2784,7 +2784,7 @@
                 <h1>Notifications</h1>
                 <p>3 unread.</p>
               </div>
-              <button class="btn btn-gh btn-sm">Mark all as read</button>
+              <button class="btn btn-gh btn-sm" onclick="markAllAsRead()">Mark all as read</button>
             </div>
             <div class="card">
               <div class="card-body" style="padding: 0">
@@ -3633,34 +3633,6 @@
     </div>
   </div>
 </div>
-    <div class="modal-overlay" id="createElectionModal">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>Create Election</h3>
-          <button class="modal-close" onclick="closeModal('createElectionModal')">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Election Name</label>
-            <input type="text" class="form-ctrl" placeholder="e.g. KIUTSO Elections 2026/27"/>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Start Date &amp; Time</label>
-              <input type="datetime-local" class="form-ctrl" />
-            </div>
-            <div class="form-group">
-              <label>End Date &amp; Time</label>
-              <input type="datetime-local" class="form-ctrl" />
-            </div>
-          </div>
-        </div>
-        <div class="modal-foot">
-          <button class="btn btn-gh" onclick="closeModal('createElectionModal')">Cancel</button>
-          <button class="btn btn-p">Create Election</button>
-        </div>
-      </div>
-    </div>
     <div class="modal-overlay" id="disqualifyModal">
       <div class="modal" style="max-width: 420px">
         <div class="modal-head" style="background: #92400e">
