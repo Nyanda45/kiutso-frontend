@@ -707,7 +707,8 @@ async function downloadReport(type, format) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `kiutso_${type}_report.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+            // ← Badilisha extension kuwa .csv daima
+            a.download = `kiutso_${type}_report.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
             showToast('Report imedownload!');
@@ -718,7 +719,6 @@ async function downloadReport(type, format) {
         showToast('Tatizo la mtandao!', 'error');
     }
 }
-
 // =============================================
 // VOTERS
 // =============================================
