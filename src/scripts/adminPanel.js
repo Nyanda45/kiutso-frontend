@@ -490,42 +490,43 @@ async function loadPastElections() {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
         const elections = await res.json();
-        const container = document.querySelector('#sec-past .past-list') || document.querySelector('#sec-past .tbl tbody');
+        const container = document.querySelector('#sec-past .past-grid');
         if (!container) return;
 
         if (!elections.length) {
-            container.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Hakuna uchaguzi wa zamani</td></tr>`;
+            container.innerHTML = `<p style="color:var(--muted);font-size:13px;padding:16px">Hakuna uchaguzi wa zamani.</p>`;
             return;
         }
 
-        if (container.tagName === 'TBODY') {
-            container.innerHTML = elections.map((e, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td class="tbl-name">${e.title}</td>
-                    <td>${e.voting_opens ? new Date(e.voting_opens).toLocaleDateString() : '-'}</td>
-                    <td>${e.voting_closes ? new Date(e.voting_closes).toLocaleDateString() : '-'}</td>
-                    <td>
-                        <button class="btn btn-gh btn-sm" onclick="viewPastResults(${e.id})">View Results</button>
-                        <button class="btn btn-p btn-sm" onclick="exportPastElection(${e.id})">Export</button>
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            container.innerHTML = elections.map(e => `
-                <div class="past-card" style="padding:16px;border:1px solid var(--border);border-radius:10px;margin-bottom:12px;">
-                    <div style="font-weight:600">${e.title}</div>
-                    <div style="font-size:12px;color:var(--muted);margin:4px 0">${e.voting_opens ? new Date(e.voting_opens).toLocaleDateString() : '-'} → ${e.voting_closes ? new Date(e.voting_closes).toLocaleDateString() : '-'}</div>
-                    <div style="margin-top:10px;display:flex;gap:8px">
-                        <button class="btn btn-gh btn-sm" onclick="viewPastResults(${e.id})">View Results</button>
-                        <button class="btn btn-p btn-sm" onclick="exportPastElection(${e.id})">Export</button>
+        container.innerHTML = elections.map(e => `
+            <div class="past-card">
+                <div class="past-top">
+                    <h3>${e.title}</h3>
+                    <p>${e.voting_opens ? new Date(e.voting_opens).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '-'}</p>
+                </div>
+                <div class="past-body">
+                    <div class="past-row">
+                        <span>Status</span>
+                        <span>${e.status.toUpperCase()}</span>
+                    </div>
+                    <div class="past-row">
+                        <span>Voting Opened</span>
+                        <span>${e.voting_opens ? new Date(e.voting_opens).toLocaleDateString() : '-'}</span>
+                    </div>
+                    <div class="past-row">
+                        <span>Voting Closed</span>
+                        <span>${e.voting_closes ? new Date(e.voting_closes).toLocaleDateString() : '-'}</span>
                     </div>
                 </div>
-            `).join('');
-        }
+                <div class="past-foot">
+                    <button class="btn btn-gh btn-sm" style="flex:1" onclick="viewPastResults(${e.id})">View Results</button>
+                    <button class="btn btn-gh btn-sm" onclick="exportPastElection(${e.id})">Export</button>
+                </div>
+            </div>
+        `).join('');
+
     } catch(e) { console.error('Past elections error:', e); }
 }
-
 async function viewPastResults(electionId) {
     showToast('Inapakia matokeo...', 'info');
     try {
