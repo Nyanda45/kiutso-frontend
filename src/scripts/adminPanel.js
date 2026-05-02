@@ -632,7 +632,6 @@ async function loadAnnouncementHistory() {
 }
 // =============================================
 // NOTIFICATIONS
-// =============================================
 async function loadNotifications() {
     try {
         const res = await fetch(`${API_URL}/admin/notifications`, {
@@ -641,66 +640,61 @@ async function loadNotifications() {
         const data = await res.json();
         const notifications = data.notifications || data;
 
-        // Update badge count
+        // Update badge count — topbar na sidebar
         const unread = notifications.filter(n => !n.read_at).length;
-        const badge = document.querySelector('.notif-badge');
-        if (badge) badge.textContent = unread > 0 ? unread : '';
+        document.querySelectorAll('.notif-count, .sb-badge').forEach(el => {
+            if (el.closest('[data-section="notifications"]') || el.classList.contains('notif-count')) {
+                el.textContent = unread > 0 ? unread : '';
+            }
+        });
 
-        const container = document.querySelector('#sec-notifications .notif-list') || document.querySelector('#sec-notifications .tbl tbody');
+        const container = document.querySelector('#sec-notifications .notif-list');
         if (!container) return;
 
         if (!notifications.length) {
-            container.innerHTML = container.tagName === 'TBODY'
-                ? `<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--muted)">Hakuna notifications</td></tr>`
-                : `<p style="color:var(--muted);font-size:13px">Hakuna notifications kwa sasa.</p>`;
+            container.innerHTML = `<p style="color:var(--muted);font-size:13px;padding:16px">Hakuna notifications.</p>`;
             return;
         }
 
-        if (container.tagName === 'TBODY') {
-            container.innerHTML = notifications.map(n => `
-                <tr style="${!n.read_at ? 'background:rgba(10,48,24,.04)' : ''}">
-                    <td>${n.type || 'system'}</td>
-                    <td>${n.message || n.data?.message || '-'}</td>
-                    <td style="font-size:12px">${new Date(n.created_at).toLocaleString()}</td>
-                </tr>
-            `).join('');
-        } else {
-            container.innerHTML = notifications.map(n => `
-                <div class="notif-item ${!n.read_at ? 'unread' : ''}" style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
-                    <span class="act-dot ${!n.read_at ? 'g' : ''}" style="margin-top:5px;flex-shrink:0"></span>
-                    <div>
-                        <div style="font-size:13.5px">${n.message || n.data?.message || 'Notification'}</div>
-                        <div style="font-size:11.5px;color:var(--muted)">${new Date(n.created_at).toLocaleString()}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
+        // Hifadhi notifications kwenye data attribute kwa filtering
+        container.dataset.notifications = JSON.stringify(notifications);
+        renderNotifications(notifications);
+
     } catch(e) { console.error('Notifications error:', e); }
 }
 
-async function markAllAsRead() {
-    try {
-        const res = await fetch(`${API_URL}/admin/notifications/read-all`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-        });
-        if (res.ok) {
-            showToast('Notifications zote zimesomwa!');
-            loadNotifications();
-        }
-    } catch(e) { showToast('Tatizo la mtandao!', 'error'); }
+function renderNotifications(notifications) {
+    const container = document.querySelector('#sec-notifications .notif-list');
+    if (!container) return;
+
+    container.innerHTML = notifications.map(n => `
+        <div class="notif-item ${!n.read_at ? 'unread' : ''}" data-type="${n.type}">
+            <span class="notif-dot ${n.type === 'warning' ? 'w' : n.type === 'danger' ? 'r' : 'g'}"></span>
+            <div class="notif-content">
+                <div class="notif-title">${n.message}</div>
+                <div class="notif-ts">${new Date(n.created_at).toLocaleString()}</div>
+            </div>
+        </div>
+    `).join('');
 }
 
-function filterNotifications(type) {
-    const items = document.querySelectorAll('.notif-item');
-    items.forEach(item => {
-        item.style.display = type === 'all' || item.classList.contains(type) ? '' : 'none';
-    });
-}
+// Fix filter buttons
+document.querySelectorAll('.nf-btn').forEach(b =>
+    b.addEventListener('click', function() {
+        document.querySelectorAll('.nf-btn').forEach(x => x.classList.remove('on'));
+        this.classList.add('on');
+        
+        const filter = this.textContent.toLowerCase().trim();
+        const container = document.querySelector('#sec-notifications .notif-list');
+        if (!container || !container.dataset.notifications) return;
+        
+        const all = JSON.parse(container.dataset.notifications);
+        const filtered = filter === 'all' ? all : all.filter(n => n.type === filter);
+        renderNotifications(filtered);
+    })
+);
 
-// =============================================
 // REPORTS
-// =============================================
 async function downloadReport(type, format) {
     showToast(`Inaunda ${type} report...`, 'info');
     try {
