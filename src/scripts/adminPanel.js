@@ -696,7 +696,7 @@ document.querySelectorAll('.nf-btn').forEach(b =>
 
 // REPORTS
 async function downloadReport(type, format) {
-    showToast(`Inaunda ${type} report...`, 'info');
+    showToast(`Inaunda report...`, 'info');
     try {
         const res = await fetch(`${API_URL}/admin/reports/${type}?format=${format}`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
@@ -707,7 +707,6 @@ async function downloadReport(type, format) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            // ← Badilisha extension kuwa .csv daima
             a.download = `kiutso_${type}_report.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
