@@ -289,38 +289,81 @@ function filterResults(positionId) {
 // =============================================
 // CANDIDATES
 // =============================================
+let allCandidatesData = [];
+
 async function loadCandidates() {
     try {
         const res = await fetch(`${API_URL}/candidates`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
         const candidates = await res.json();
-        const tbody = document.querySelector('#sec-candidates .tbl tbody');
-        if (!tbody) return;
+        allCandidatesData = candidates;
 
-        if (candidates.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">No candidates found</td></tr>`;
-            return;
+        // Jaza positions dropdown
+        const posFilter = document.querySelector('#sec-candidates .tbl-toolbar-left select:last-child');
+        if (posFilter) {
+            const positions = [...new Set(candidates.map(c => c.position?.title).filter(Boolean))];
+            posFilter.innerHTML = '<option value="all">All Positions</option>' +
+                positions.map(p => `<option value="${p}">${p}</option>`).join('');
+            posFilter.onchange = function() {
+                const search = document.querySelector('#sec-candidates .tbl-search input')?.value || '';
+                filterCandidates(this.value, search);
+            };
         }
 
-        tbody.innerHTML = candidates.map((c, i) => `
-            <tr>
-                <td>${i + 1}</td>
-                <td>${c.photo_url ? `<img src="${c.photo_url}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : `<div class="tbl-avatar-ph">${c.full_name.charAt(0)}</div>`}</td>
-                <td class="tbl-name">${c.full_name}</td>
-                <td>${c.position ? c.position.title : '-'}</td>
-                <td>${c.faculty || '-'}</td>
-                <td>${c.reg_number || '-'}</td>
-                <td>-</td>
-                <td><button class="btn btn-d btn-sm" onclick="deleteCandidate(${c.id})">Delete</button></td>
-            </tr>
-        `).join('');
+        // Search
+        const searchInput = document.querySelector('#sec-candidates .tbl-search input');
+        if (searchInput) {
+            searchInput.oninput = function() {
+                const pos = document.querySelector('#sec-candidates .tbl-toolbar-left select:last-child')?.value || 'all';
+                filterCandidates(pos, this.value);
+            };
+        }
 
-        const visibleEl = document.querySelector('#sec-candidates .visible-entries');
-        const totalEl = document.querySelector('#sec-candidates .total-entries');
-        if (visibleEl) visibleEl.textContent = candidates.length;
-        if (totalEl) totalEl.textContent = candidates.length;
+        filterCandidates('all');
+
     } catch(e) { console.error('Candidates error:', e); }
+}
+
+function filterCandidates(position = 'all', search = '') {
+    let filtered = allCandidatesData;
+
+    if (position !== 'all') {
+        filtered = filtered.filter(c => c.position?.title === position);
+    }
+
+    if (search) {
+        filtered = filtered.filter(c =>
+            c.full_name.toLowerCase().includes(search.toLowerCase()) ||
+            (c.reg_number && c.reg_number.toLowerCase().includes(search.toLowerCase()))
+        );
+    }
+
+    const tbody = document.querySelector('#sec-candidates .tbl tbody');
+    if (!tbody) return;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">No candidates found</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map((c, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${c.photo_url ? `<img src="${c.photo_url}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : `<div class="tbl-avatar-ph">${c.full_name.charAt(0)}</div>`}</td>
+            <td class="tbl-name">${c.full_name}</td>
+            <td>${c.position ? c.position.title : '-'}</td>
+            <td>${c.faculty || '-'}</td>
+            <td>${c.reg_number || '-'}</td>
+            <td>-</td>
+            <td><button class="btn btn-d btn-sm" onclick="deleteCandidate(${c.id})">Delete</button></td>
+        </tr>
+    `).join('');
+
+    const visibleEl = document.querySelector('#sec-candidates .visible-entries');
+    const totalEl = document.querySelector('#sec-candidates .total-entries');
+    if (visibleEl) visibleEl.textContent = filtered.length;
+    if (totalEl) totalEl.textContent = allCandidatesData.length;
 }
 
 async function addCandidate() {
