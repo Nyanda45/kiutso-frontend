@@ -2758,8 +2758,8 @@
                 <h3>Candidate Summary Report</h3>
                 <p>All candidates with final vote counts, percentages, positions, and winner status. </p>
                 <div class="report-actions">
-                  <button class="btn btn-gh btn-sm">PDF</button>
-                  <button class="btn btn-gh btn-sm">Excel</button>
+                  <button class="btn btn-gh btn-sm" onclick="downloadReport('candidate-summary','pdf')">PDF</button>
+                  <button class="btn btn-gh btn-sm" onclick="downloadReport('candidate-summary','excel')">Excel</button>
                 </div>
               </div>
               <div class="report-card">
@@ -2771,8 +2771,8 @@
                 <h3>Election Timeline Report</h3>
                 <p>Chronological record of every election event from creation to results announcement.</p>
                 <div class="report-actions">
-                  <button class="btn btn-gh btn-sm">PDF</button>
-                  <button class="btn btn-gh btn-sm">Excel</button>
+                <button class="btn btn-gh btn-sm" onclick="downloadReport('election-timeline','pdf')">PDF</button>
+                <button class="btn btn-gh btn-sm" onclick="downloadReport('election-timeline','excel')">Excel</button>
                 </div>
               </div>
             </div>
