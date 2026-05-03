@@ -15,20 +15,25 @@
         box-sizing: border-box;
       }
       :root {
-        --green-dark: #0d4a22;
-        --green: #166534;
-        --green-mid: #1a7a3c;
-        --green-light: #dcfce7;
-        --white: #ffffff;
-        --off-white: #f9fafb;
-        --gray-200: #e2e8f0;
-        --gray-400: #94a3b8;
-        --gray-500: #64748b;
-        --gray-700: #334155;
-        --text: #1e293b;
-        --err: #dc2626;
-        --sans: "Poppins", sans-serif;
-      }
+  --green-dark: #0d4a22;
+  --green: #166534;
+  --green-mid: #1a7a3c;
+  --green-light: #dcfce7;
+  --white: #ffffff;
+  --off-white: #f9fafb;
+  --gray-200: #e2e8f0;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --text: #1e293b;
+  --err: #dc2626;
+  --sans: "Poppins", sans-serif;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --input: #f9fafb;
+  --primary: #166534;
+  --muted: #64748b;
+}
       ::-webkit-scrollbar {
         width: 8px;
       }
@@ -341,26 +346,20 @@
           padding: 28px 24px;
         }
       }
- :root {
-  --green-dark: #0d4a22;
-  --green: #166534;
-  --green-mid: #1a7a3c;
-  --green-light: #dcfce7;
-  --white: #ffffff;
-  --off-white: #f9fafb;
-  --gray-200: #e2e8f0;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-700: #334155;
-  --text: #1e293b;
-  --err: #dc2626;
-  --sans: "Poppins", sans-serif;
-  /* Ongeza hizi: */
-  --card: #ffffff;
-  --border: #e2e8f0;
-  --input: #f9fafb;
-  --primary: #166534;
-  --muted: #64748b;
+       #forgot-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+#forgot-modal.open {
+  display: flex !important;
 }
     </style>
   </head>
@@ -426,7 +425,7 @@
       </div>
     </div>
     <!-- FORGOT PASSWORD MODAL -->
-<div id="forgot-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+<div id="forgot-modal">
   <div style="background:var(--card);border-radius:16px;padding:32px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <!-- STEP 1: Ingiza Reg Number -->
