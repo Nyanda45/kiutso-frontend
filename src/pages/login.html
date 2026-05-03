@@ -341,6 +341,12 @@
           padding: 28px 24px;
         }
       }
+      #forgot-modal {
+  display: none;
+}
+#forgot-modal.open {
+  display: flex !important;
+}
     </style>
   </head>
   <body>
@@ -405,7 +411,7 @@
       </div>
     </div>
     <!-- FORGOT PASSWORD MODAL -->
-<div id="forgot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+<div id="forgot-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:var(--card);border-radius:16px;padding:32px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <!-- STEP 1: Ingiza Reg Number -->
@@ -541,11 +547,12 @@ try {
       document.addEventListener("keydown", (e) => {
         if (e.key === "Enter") doLogin();
       });
+
 const FP_API = 'https://kiutso-backend-production.up.railway.app/api';
 let fp_user_id = null;
 
 function openForgot() {
-  document.getElementById('forgot-modal').style.display = 'flex';
+  document.getElementById('forgot-modal').classList.add('open');
   document.getElementById('fp-step1').style.display = 'block';
   document.getElementById('fp-step2').style.display = 'none';
   document.getElementById('fp-step3').style.display = 'none';
@@ -554,9 +561,8 @@ function openForgot() {
 }
 
 function closeForgot() {
-  document.getElementById('forgot-modal').style.display = 'none';
+  document.getElementById('forgot-modal').classList.remove('open');
 }
-
 async function sendForgotOtp() {
   const reg = document.getElementById('fp-reg').value.trim();
   const err = document.getElementById('fp-err1');
