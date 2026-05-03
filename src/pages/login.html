@@ -379,7 +379,7 @@
         <div class="field">
           <div class="field-row">
             <label for="password">Password</label>
-            <a href="#" class="forgot-link">Forgot password?</a>
+           <a href="#" class="forgot-link" onclick="openForgot(); return false;">Forgot password?</a>
           </div>
           <div class="pw-wrap">
             <input type="password" id="password" autocomplete="off"/>
@@ -404,6 +404,50 @@
         </p>
       </div>
     </div>
+    <!-- FORGOT PASSWORD MODAL -->
+<div id="forgot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border-radius:16px;padding:32px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    
+    <!-- STEP 1: Ingiza Reg Number -->
+    <div id="fp-step1">
+      <h2 style="margin:0 0 8px;font-size:20px">Forgot Password</h2>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 24px">Ingiza reg number yako — OTP itatumwa kwenye email yako.</p>
+      <input id="fp-reg" type="text" placeholder="Reg Number (e.g. KIUT/2022/001)" 
+        style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:16px"/>
+      <div id="fp-err1" style="color:#ef4444;font-size:12px;margin-bottom:12px;display:none"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeForgot()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px">Cancel</button>
+        <button onclick="sendForgotOtp()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-size:14px;font-weight:600">Send OTP</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Ingiza OTP + Password Mpya -->
+    <div id="fp-step2" style="display:none">
+      <h2 style="margin:0 0 8px;font-size:20px">Reset Password</h2>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 24px">Ingiza OTP uliyopata kwenye email na password mpya.</p>
+      <input id="fp-otp" type="text" placeholder="OTP Code (6 digits)" maxlength="6"
+        style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:12px"/>
+      <input id="fp-pass" type="password" placeholder="Password Mpya (min 6)"
+        style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:12px"/>
+      <input id="fp-pass2" type="password" placeholder="Thibitisha Password"
+        style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:16px"/>
+      <div id="fp-err2" style="color:#ef4444;font-size:12px;margin-bottom:12px;display:none"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeForgot()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px">Cancel</button>
+        <button onclick="doResetPassword()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-size:14px;font-weight:600">Reset Password</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Success -->
+    <div id="fp-step3" style="display:none;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">✅</div>
+      <h2 style="margin:0 0 8px;font-size:20px">Password Imebadilishwa!</h2>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 24px">Unaweza sasa kuingia na password yako mpya.</p>
+      <button onclick="closeForgot()" style="width:100%;padding:12px;border:none;border-radius:8px;background:var(--primary);color:#fff;cursor:pointer;font-size:14px;font-weight:600">Ingia Sasa</button>
+    </div>
+
+  </div>
+</div>
     <script>
       function togglePw() {
         const pw = document.getElementById("password");
@@ -497,6 +541,73 @@ try {
       document.addEventListener("keydown", (e) => {
         if (e.key === "Enter") doLogin();
       });
+const FP_API = 'https://kiutso-backend-production.up.railway.app/api';
+let fp_user_id = null;
+
+function openForgot() {
+  document.getElementById('forgot-modal').style.display = 'flex';
+  document.getElementById('fp-step1').style.display = 'block';
+  document.getElementById('fp-step2').style.display = 'none';
+  document.getElementById('fp-step3').style.display = 'none';
+  document.getElementById('fp-reg').value = '';
+  document.getElementById('fp-err1').style.display = 'none';
+}
+
+function closeForgot() {
+  document.getElementById('forgot-modal').style.display = 'none';
+}
+
+async function sendForgotOtp() {
+  const reg = document.getElementById('fp-reg').value.trim();
+  const err = document.getElementById('fp-err1');
+  if (!reg) { err.textContent = 'Ingiza reg number'; err.style.display = 'block'; return; }
+
+  try {
+    const res = await fetch(`${FP_API}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ reg_number: reg })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      fp_user_id = data.user_id;
+      document.getElementById('fp-step1').style.display = 'none';
+      document.getElementById('fp-step2').style.display = 'block';
+    } else {
+      err.textContent = data.message || 'Kuna tatizo'; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Tatizo la mtandao'; err.style.display = 'block';
+  }
+}
+
+async function doResetPassword() {
+  const code = document.getElementById('fp-otp').value.trim();
+  const pass = document.getElementById('fp-pass').value;
+  const pass2 = document.getElementById('fp-pass2').value;
+  const err = document.getElementById('fp-err2');
+
+  if (!code || code.length !== 6) { err.textContent = 'Ingiza OTP ya nambari 6'; err.style.display = 'block'; return; }
+  if (pass.length < 6) { err.textContent = 'Password lazima iwe na herufi 6+'; err.style.display = 'block'; return; }
+  if (pass !== pass2) { err.textContent = 'Passwords hazifanani'; err.style.display = 'block'; return; }
+
+  try {
+    const res = await fetch(`${FP_API}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ user_id: fp_user_id, code, password: pass, password_confirmation: pass2 })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('fp-step2').style.display = 'none';
+      document.getElementById('fp-step3').style.display = 'block';
+    } else {
+      err.textContent = data.message || 'Kuna tatizo'; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Tatizo la mtandao'; err.style.display = 'block';
+  }
+}
     </script>
   </body>
 </html>
